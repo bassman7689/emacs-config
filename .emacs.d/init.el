@@ -18,7 +18,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (spacemacs-common spacemacs-theme magit use-package))))
+    (go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -26,8 +26,16 @@
  ;; If there is more than one, they won't work right.
  )
 
-(use-package spacemacs-theme
-  :ensure t)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(unless (package-installed-p 'spacemacs-theme)
+  (package-refresh-contents)
+  (package-install 'spacemacs-theme))
+
+(eval-when-compile
+  (require 'use-package))
 
 (use-package magit
   :ensure t
@@ -35,3 +43,44 @@
   (global-set-key (kbd "C-x g") 'magit-status))
 
 
+(use-package exec-path-from-shell
+  :ensure t)
+
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (replace-regex-in-string
+			  "[ \t\n]*$"
+			  ""
+			  (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+    (setenv "PATH" path-from-shell)
+    (setq eshell-path-env path-from-shell)
+    (setq exec-path (split-from-shell path-separator))))
+
+(setenv "GOPATH" "/home/sean/go/")
+
+(defun my-go-mode-hook ()
+  (add-to-list 'exec-path "/home/sean/go/bin")
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (if (not (string-match "go" compile-command)
+	   "go build -v && go vet"))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark))
+
+(use-package go-mode
+  :ensure t
+  :config
+  (add-hook 'go-mode-hook 'my-go-mode-hook))
+
+(defun auto-complete-for-go ()
+  (auto-complete-mode 1))
+
+(use-package auto-complete
+  :ensure t
+  :config
+  (ac-config-default)
+  (add-hook 'go-mode-hook 'auto-complete-for-go))
+(use-package go-autocomplete
+  :ensure t)
+
+(with-eval-after-load 'go-mode
+  (require 'go-autocomplete))
