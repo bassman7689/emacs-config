@@ -33,6 +33,8 @@
 
 (add-hook 'term-mode-hook 'my-term-hook)
 
+(setq-default c-bassic-offset 4)
+
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
