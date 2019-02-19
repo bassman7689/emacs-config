@@ -1,4 +1,7 @@
 (setq ring-bell-function 'ignore)
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+(setq create-lockfiles nil)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
