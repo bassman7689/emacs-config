@@ -33,7 +33,27 @@
 
 (add-hook 'term-mode-hook 'my-term-hook)
 
-(setq-default c-bassic-offset 4)
+(defun my-c-mode-hook ()
+  (setq c-default-style "linux"
+	c-basic-offset 4)
+  (c-toggle-hungry-state 1)
+  (define-key c-mode-base-map "\C-m" 'c-context-line-break))
+
+(add-hook 'c-initialization-hook 'my-c-mode-hook)
+
+(setq my-init-file-name "~/.emacs.d/init.el")
+
+(defun my-config-edit ()
+  (interactive)
+  (find-file my-init-file-name))
+
+(global-set-key (kbd "C-c e") 'my-config-edit)
+
+(defun my-config-reload ()
+  (interactive)
+  (load-file my-init-file-name))
+
+(global-set-key (kbd "C-c r") 'my-config-reload)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -96,7 +116,8 @@
   (add-to-list 'exec-path "/home/sean/go/bin")
   (setq gofmt-command "goimports")
   (add-hook 'before-save-hook 'gofmt-before-save)
-  (if (not (string-match "go" compile-command)
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
 	   "go build -v && go vet"))
   (local-set-key (kbd "M-.") 'godef-jump)
   (local-set-key (kbd "M-*") 'pop-tag-mark))
