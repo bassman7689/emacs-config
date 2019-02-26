@@ -32,11 +32,18 @@
 
 (add-hook 'term-mode-hook 'my-term-hook)
 
+(defun single-ansi-term ()
+  (interactive)
+  (if (get-buffer "*ansi-term*")
+      (switch-to-buffer "*ansi-term*")
+    (ansi-term explicit-shell-file-name))
+  (get-buffer-process "*ansi-term*"))
+
 (defun split-below-ansi-term ()
   (interactive)
   (split-window-below)
   (other-window 1)
-  (ansi-term "/usr/bin/zsh"))
+  (single-ansi-term))
 
 (global-set-key (kbd "C-c t") 'split-below-ansi-term)
 
