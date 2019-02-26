@@ -3,23 +3,22 @@
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
 
-(defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
-  (if (memq (process-status proc) '(signal exit))
-      (let ((buffer (process-buffer proc)))
-	ad-do-it
-	(kill-buffer buffer))
-    ad-do-it))
+(defun my-term-exec-hook ()
+  (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)
+  (let* ((buff (current-buffer))
+	 (proc (get-buffer-process buff)))
+    (set-process-sentinel
+     proc
+     `(lambda (process event)
+	(when (string= event "finished\n")
+	  (ignore-errors
+	    (delete-window))
+	  (kill-buffer ,buff))))))
 
-(ad-activate 'term-sentinel)
+(add-hook 'term-exec-hook 'my-term-exec-hook)
 
-(defvar my-term-shell "/usr/bin/zsh")
-(defadvice ansi-term (before force-bash)
-  (interactive (list my-term-shell)))
-(ad-activate 'ansi-term)
-
-(defun my-term-use-utf8 ()
-  (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix))
-(add-hook 'term-exec-hook 'my-term-use-utf8)
+(setq explicit-shell-file-name "/usr/bin/zsh")
+(setq explicit-bash-args.exe-args '("-l" "-i"))
 
 (defun my-term-paste (&optional string)
   (interactive)
@@ -32,6 +31,14 @@
   (define-key term-raw-map "\C-y" 'my-term-paste))
 
 (add-hook 'term-mode-hook 'my-term-hook)
+
+(defun split-below-ansi-term ()
+  (interactive)
+  (split-window-below)
+  (other-window 1)
+  (ansi-term "/usr/bin/zsh"))
+
+(global-set-key (kbd "C-c t") 'split-below-ansi-term)
 
 (defun my-c-mode-hook ()
   (setq c-default-style "linux"
@@ -54,6 +61,14 @@
   (load-file my-init-file-name))
 
 (global-set-key (kbd "C-c r") 'my-config-reload)
+
+(setq electric-pair-pairs
+      '((?\" . ?\")
+	(?\' . ?\')
+	(?\{ . ?\})
+	(?\[ . ?\])))
+
+(electric-pair-mode 1)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
