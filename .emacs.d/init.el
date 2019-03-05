@@ -1,3 +1,5 @@
+3(require 'subr-x)
+
 (setq ring-bell-function 'ignore)
 (setq make-backup-files nil)
 (setq auto-save-default nil)
@@ -10,7 +12,7 @@
     (set-process-sentinel
      proc
      `(lambda (process event)
-	(when (string= event "finished\n")
+	(when (string-match "\\(finished\\|exited\\)" event)
 	  (ignore-errors
 	    (delete-window))
 	  (kill-buffer ,buff))))))
@@ -95,7 +97,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (ponylang-mode rainbow-delimiters go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -162,3 +164,17 @@
 
 (with-eval-after-load 'go-mode
   (require 'go-autocomplete))
+
+(use-package rainbow-delimiters
+  :ensure t)
+
+(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+
+(use-package ponylang-mode
+  :ensure t
+  :config
+  (progn
+    (add-hook 'ponylang-mode-hook
+	    (lambda ()
+	      (set-variable 'indent-tabs-mode nil)
+	      (set-variable 'tab-width 2)))))
