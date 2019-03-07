@@ -1,4 +1,4 @@
-3(require 'subr-x)
+(require 'subr-x)
 
 (setq ring-bell-function 'ignore)
 (setq make-backup-files nil)
@@ -97,7 +97,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (ponylang-mode rainbow-delimiters go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -165,11 +165,6 @@
 (with-eval-after-load 'go-mode
   (require 'go-autocomplete))
 
-(use-package rainbow-delimiters
-  :ensure t)
-
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-
 (use-package ponylang-mode
   :ensure t
   :config
@@ -178,3 +173,71 @@
 	    (lambda ()
 	      (set-variable 'indent-tabs-mode nil)
 	      (set-variable 'tab-width 2)))))
+
+(defun spotify-play-href (href)
+  (shell-command (format "dbus-send --type=method_call \
+                          --dest=org.mpris.MediaPlayer2.spotify \
+                          /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.OpenUri %S"
+			 (format "string:%s" href))))
+
+(use-package helm
+  :ensure t)
+
+(require 'json)
+
+(setq spotify-client-id "d5c28dc009ec46f0ab4cd7a5343ad808")
+(setq spotify-client-secret "b69737f0e7b44096b0870c064c87f1d1")
+
+(defun spotify-encode-creds (client-id client-secret)
+  (let* ((raw-creds (base64-encode-string (format "%s:%s" client-id client-secret)))
+	 (creds (replace-regexp-in-string "\n" "" raw-creds)))
+    (format "Basic %s" creds)))
+
+(defun spotify-auth-headers (client-id client-secret)
+  (let ((auth-data (spotify-encode-creds client-id client-secret)))
+    `(("Authorization" . ,auth-data)
+      ("Content-Type" . "application/x-www-form-urlencoded"))))
+
+(defun spotify-auth ()
+  (let ((url-request-method "POST")
+	(url-request-extra-headers (spotify-auth-headers spotify-client-id spotify-client-secret))
+	(url-request-data "grant_type=client_credentials"))
+    (with-current-buffer
+	(url-retrieve-synchronously "https://accounts.spotify.com/api/token")
+      (goto-char url-http-end-of-headers)
+      (json-read))))
+
+(defun spotify-search-headers (access_token)
+  `("Authorization" . ,(format "Bearer %s" access_token)))
+
+(defun spotify-get-tracks (query)
+  (let* ((url-request-method "GET")
+	 (access_token (cdr (assoc 'access_token (spotify-auth))))
+	 (url-request-extra-headers `(("Authorization" . ,(format "Bearer %s" access_token)))))
+    (with-current-buffer
+	(url-retrieve-synchronously (format "https://api.spotify.com/v1/search?type=artist,album,track,playlist&market=US&q=%S" (url-hexify-string query)))
+      (goto-char url-http-end-of-headers)
+      (json-read))))
+
+(defun format-track-name (item)
+  (format "Type: %s\nName: %s - %s"
+	  (capitalize (cdr (assoc 'type item)))
+	  (mapconcat (lambda (artist)
+		       (cdr (assoc 'name artist)))
+		     (cdr (assoc 'artists item))
+		     ", ")
+	  (cdr (assoc 'name item))))
+
+(defun helm-spotify-search ()
+  (mapcar (lambda (item)
+	    (cons (format-track-name item) (cdr (assoc 'uri item))))
+	  (cdr (assoc 'items (assoc 'tracks (spotify-get-tracks helm-pattern))))))
+
+(defun helm-spotify ()
+  (interactive)
+  (helm :sources (helm-build-sync-source "Spotify"
+		   :candidates 'helm-spotify-search
+		   :action 'spotify-play-href
+		   :volatile t
+		   :multiline t
+		   )))
