@@ -179,14 +179,14 @@
 
 (require 'json)
 
+(setq spotify-client-id "d5c28dc009ec46f0ab4cd7a5343ad808")
+(setq spotify-client-secret "b69737f0e7b44096b0870c064c87f1d1")
+
 (defun spotify-play-href (href)
   (shell-command (format "dbus-send --type=method_call \
                           --dest=org.mpris.MediaPlayer2.spotify \
                           /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.OpenUri %S"
 			 (format "string:%s" href))))
-
-(setq spotify-client-id "d5c28dc009ec46f0ab4cd7a5343ad808")
-(setq spotify-client-secret "b69737f0e7b44096b0870c064c87f1d1")
 
 (defun spotify-encode-creds (client-id client-secret)
   (let* ((raw-creds (base64-encode-string (format "%s:%s" client-id client-secret)))
