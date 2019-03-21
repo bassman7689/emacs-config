@@ -97,7 +97,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -241,3 +241,12 @@
 		   :volatile t
 		   :multiline t
 		   )))
+
+(use-package org-bullets
+  :ensure t
+  :commands (org-bullets-mode)
+  :init (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+(use-package rust-mode
+  :ensure t
+  :init (setq rust-format-on-save t))
