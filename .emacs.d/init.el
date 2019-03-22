@@ -97,7 +97,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (clojure-mode cider rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -175,6 +175,12 @@
 	      (set-variable 'tab-width 2)))))
 
 (use-package helm
+  :ensure t)
+
+(use-package clojure-mode
+  :ensure t)
+
+(use-package cider
   :ensure t)
 
 (require 'json)
