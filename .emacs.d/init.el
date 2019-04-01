@@ -103,6 +103,7 @@
 
 (column-number-mode 1)
 (global-display-line-numbers-mode 1)
+(setq-default fill-column 80)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
