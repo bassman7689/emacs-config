@@ -5,50 +5,6 @@
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
 
-(defun my-term-exec-hook ()
-  (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)
-  (let* ((buff (current-buffer))
-	 (proc (get-buffer-process buff)))
-    (set-process-sentinel
-     proc
-     `(lambda (process event)
-	(when (string-match "\\(finished\\|exited\\)" event)
-	  (ignore-errors
-	    (delete-window))
-	  (kill-buffer ,buff))))))
-
-(add-hook 'term-exec-hook 'my-term-exec-hook)
-
-(setq explicit-shell-file-name "/usr/bin/zsh")
-(setq explicit-bash-args.exe-args '("-l" "-i"))
-
-(defun my-term-paste (&optional string)
-  (interactive)
-  (process-send-string
-   (get-buffer-process (current-buffer))
-   (if string string (current-kill 0))))
-
-(defun my-term-hook ()
-  (goto-address-mode)
-  (define-key term-raw-map "\C-y" 'my-term-paste))
-
-(add-hook 'term-mode-hook 'my-term-hook)
-
-(defun single-ansi-term ()
-  (interactive)
-  (if (get-buffer "*ansi-term*")
-      (switch-to-buffer "*ansi-term*")
-    (ansi-term explicit-shell-file-name))
-  (get-buffer-process "*ansi-term*"))
-
-(defun split-below-ansi-term ()
-  (interactive)
-  (split-window-below)
-  (other-window 1)
-  (single-ansi-term))
-
-(global-set-key (kbd "C-c t") 'split-below-ansi-term)
-
 (defun c-lineup-arglist-tabs-only (ignored)
   "Line up argument lists by tabs, not spaces"
   (let* ((anchor (c-langelem-pos c-syntactic-element))
@@ -97,6 +53,7 @@
       '((?\" . ?\")
 	(?\' . ?\')
 	(?\{ . ?\})
+	(?\( . ?\))
 	(?\[ . ?\])))
 
 (electric-pair-mode 1)
@@ -123,7 +80,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (clojure-mode cider rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (move-text eterm-256color multi-term go-eldoc flycheck clojure-mode cider rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -142,6 +99,25 @@
 (eval-when-compile
   (require 'use-package))
 
+(use-package eterm-256color
+  :ensure t
+  :config
+  (add-hook 'term-mode-hook #'eterm-256color-mode))
+
+(use-package multi-term
+  :ensure t
+  :config
+  (setq term-suppress-hard-newline t)
+  (setq multi-term-program "/bin/zsh")
+  (add-hook 'term-mode-hook (lambda ()
+			      (setq multi-term-dedicated-window-height (/ (window-height) 2))
+			      (define-key term-raw-map (kbd "C-y") 'term-paste)))
+  (global-set-key (kbd "C-c t") (lambda ()
+				  (interactive)
+				  (multi-term-dedicated-open)
+				  (toggle-truncate-lines 1)
+				  (other-window 1))))
+
 (use-package magit
   :ensure t
   :config
@@ -151,15 +127,21 @@
 (use-package exec-path-from-shell
   :ensure t)
 
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
 (defun set-exec-path-from-shell-PATH ()
-  (let ((path-from-shell (replace-regex-in-string
+  (interactive)
+  (let ((path-from-shell (replace-regexp-in-string
 			  "[ \t\n]*$"
 			  ""
 			  (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
     (setenv "PATH" path-from-shell)
     (setq eshell-path-env path-from-shell)
-    (setq exec-path (split-from-shell path-separator))))
+    (setq exec-path (split-string path-from-shell path-separator))))
 
+(set-exec-path-from-shell-PATH)
 (setenv "GOPATH" "/home/sean/go/")
 
 (defun my-go-mode-hook ()
@@ -176,6 +158,11 @@
   :ensure t
   :config
   (add-hook 'go-mode-hook 'my-go-mode-hook))
+
+(use-package go-eldoc
+  :ensure t
+  :config
+  (add-hook 'go-mode-hook 'go-eldoc-setup))
 
 (defun auto-complete-for-go ()
   (auto-complete-mode 1))
@@ -217,6 +204,11 @@
 (use-package rust-mode
   :ensure t
   :init (setq rust-format-on-save t))
+
+(use-package move-text
+  :ensure t
+  :config
+  (move-text-default-bindings))
 
 (require 'json)
 
