@@ -1,3 +1,7 @@
+;;; init.el --- My main Emacs config
+;;; Commentary:
+
+;;; Code:
 (require 'subr-x)
 
 (setq ring-bell-function 'ignore)
@@ -5,8 +9,11 @@
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
 
-(defun c-lineup-arglist-tabs-only (ignored)
-  "Line up argument lists by tabs, not spaces"
+(defvar c-syntactic-element)
+(defvar c-basic-offset)
+
+(defun c-lineup-arglist-tabs-only (IGNORED)
+  "Line up argument lists by tabs, not spaces.  All arguments IGNORED."
   (let* ((anchor (c-langelem-pos c-syntactic-element))
          (column (c-langelem-2nd-pos c-syntactic-element))
          (offset (- (1+ column) anchor))
@@ -35,6 +42,7 @@
                 (setq show-trailing-whitespace t)
                 (c-set-style "linux-tabs-only")))))
 
+(defvar my-init-file-name)
 (setq my-init-file-name "~/.emacs.d/init.el")
 
 (defun my-config-edit ()
@@ -49,6 +57,7 @@
 
 (global-set-key (kbd "C-c r") 'my-config-reload)
 
+(defvar electric-pair-pairs)
 (setq electric-pair-pairs
       '((?\" . ?\")
 	(?\' . ?\')
@@ -131,6 +140,7 @@
   :ensure t
   :init (global-flycheck-mode))
 
+(defvar eshell-path-env)
 (defun set-exec-path-from-shell-PATH ()
   (interactive)
   (let ((path-from-shell (replace-regexp-in-string
