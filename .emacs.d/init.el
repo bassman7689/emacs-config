@@ -136,10 +136,6 @@
 (use-package exec-path-from-shell
   :ensure t)
 
-(use-package flycheck
-  :ensure t
-  :init (global-flycheck-mode))
-
 (defvar eshell-path-env)
 (defun set-exec-path-from-shell-PATH ()
   (interactive)
@@ -154,6 +150,13 @@
 (set-exec-path-from-shell-PATH)
 (setenv "GOPATH" "/home/sean/go/")
 
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode)
+  :config
+  (setq-default flycheck-disabled-checkers '(go/go-megacheck)))
+
+(defvar gofmt-command)
 (defun my-go-mode-hook ()
   (add-to-list 'exec-path "/home/sean/go/bin")
   (setq gofmt-command "goimports")
