@@ -90,7 +90,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
-    (move-text eterm-256color multi-term go-eldoc flycheck clojure-mode cider rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
+    (zerodark-theme move-text eterm-256color multi-term go-eldoc flycheck clojure-mode cider rust-mode org-bullets helm erlang ponylang-mode go-autocomplete auto-complete autocomplete go-mode exec-path-from-shell spacemacs-common spacemacs-theme magit use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -102,10 +102,6 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(unless (package-installed-p 'spacemacs-theme)
-  (package-refresh-contents)
-  (package-install 'spacemacs-theme))
-
 (eval-when-compile
   (require 'use-package))
 
@@ -113,6 +109,12 @@
   :ensure t
   :config
   (add-hook 'term-mode-hook #'eterm-256color-mode))
+
+(use-package zerodark-theme
+  :ensure t
+  :init
+  (load-theme 'zerodark t)
+  (zerodark-setup-modeline-format))
 
 (use-package multi-term
   :ensure t
@@ -223,6 +225,10 @@
   :ensure t
   :config
   (move-text-default-bindings))
+
+(load (expand-file-name "~/quicklisp/slime-helper.el"))
+;; Replace "sbcl" with the path to your implementation
+(setq inferior-lisp-program "sbcl")
 
 (require 'json)
 
